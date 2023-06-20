@@ -6,7 +6,7 @@ import java.time.LocalDate;
 import java.time.Period;
 
 import java.util.ArrayList;
-
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -16,12 +16,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort.Direction;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
 import wkAgenciaDeSangue.Dto.CandidatoDto;
 
 import wkAgenciaDeSangue.Dto.MediaSanguineoDto;
+
 import wkAgenciaDeSangue.Dto.QtdEstadoDto;
 import wkAgenciaDeSangue.Dto.QtdObesoDto;
 import wkAgenciaDeSangue.Entities.Candidato;
@@ -29,6 +31,7 @@ import wkAgenciaDeSangue.Entities.Utils.IMC;
 import wkAgenciaDeSangue.Entities.Utils.PotencialDoador;
 import wkAgenciaDeSangue.Repositories.CandidatoRepository;
 import wkAgenciaDeSangue.Services.Exceptions.ObjectNotFoundException;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class CandidatoService {
@@ -67,10 +70,16 @@ public class CandidatoService {
 		return obj;
 	}
 
+	@Transactional
 	public Candidato update(Candidato obj) {
-		Candidato candidato = findById(obj.getId());
-		updateData(candidato, obj);
-		return repository.save(candidato);
+		try {
+			Candidato candidato = findById(obj.getId());
+			updateData(candidato, obj);
+			return repository.save(candidato);
+		} catch (Exception e) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+		}
+		
 
 	}
 
@@ -139,24 +148,47 @@ public class CandidatoService {
 		return result;
 	}
 
-	public Map<String, Double> findByImcIdade() {
+	public Map<String, List<Object>> findByImcIdade() {
 		List<Candidato> list = repository.findAll();
 
 		IMC imc = new IMC();
-		Map<String, Double> result = imc.calcularIMCMedioPorFaixaIdade(list);
+		Map<String, List<Object>> result = imc.calcularIMCMedioPorFaixaIdade(list);
 
 		return result;
 	}
 
-	public Map<String, Integer> potencialDoador() {
+	public Map<String, List<?>> potencialDoador() {
+	    List<Candidato> list = repository.findAll();
+	    PotencialDoador potencialDoador = new PotencialDoador();
+	    Map<String, Integer> doador = potencialDoador.calculatePotencialDoador(list);
 
-		List<Candidato> list = repository.findAll();
+	    List<String> tiposSanguineos = new ArrayList<>();
+	    List<Integer> quantidades = new ArrayList<>();
 
-		PotencialDoador potencialDoador = new PotencialDoador();
+	    // Iterar sobre o mapa e preencher as listas separadas
+	    for (Map.Entry<String, Integer> entry : doador.entrySet()) {
+	        String tipoSanguineo = entry.getKey();
+	        int quantidade = entry.getValue();
 
-		Map<String, Integer> doador = potencialDoador.calculatePotencialDoador(list);
+	        tiposSanguineos.add(tipoSanguineo);
+	        quantidades.add(quantidade);
+	    }
 
-		return doador;
+	    // Faça algo com as listas separadas
+	    // ...
+
+	    // Retornar as listas separadas
+	    Map<String, List<?>> result = new HashMap<>();
+	    result.put("tiposSanguineos", tiposSanguineos);
+	    result.put("quantidades", quantidades);
+	    return result;
+	}
+
+
+	public List<Candidato> search(String nome) {
+		
+		return repository.search("%"+nome+"%");
+
 	}
 
 	private void updateData(Candidato candidato, Candidato obj) {

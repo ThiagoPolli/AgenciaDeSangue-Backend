@@ -2,6 +2,7 @@ package wkAgenciaDeSangue.Entities.Utils;
 
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,37 +44,41 @@ public class IMC {
 		
 	}
 	
-	 public Map<String, Double> calcularIMCMedioPorFaixaIdade(List<Candidato> candidatos) {
-	        Map<String, Double> imcMedioPorFaixaIdade = new HashMap<>();
+	public Map<String, List<Object>> calcularIMCMedioPorFaixaIdade(List<Candidato> candidatos) {
+	    Map<String, List<Object>> imcMedioPorFaixaIdade = new HashMap<>();
 
-	      
-	        for (int idadeInicial = 0; idadeInicial <= 100; idadeInicial += 10) {
-	            int idadeFinal = idadeInicial + 9;
+	    for (int idadeInicial = 0; idadeInicial <= 100; idadeInicial += 10) {
+	        int idadeFinal = idadeInicial + 9;
 
-	          
-	            double somaIMC = 0;
-	            int contador = 0;
+	        double somaIMC = 0;
+	        int contador = 0;
 
-	            for (Candidato candidato : candidatos) {
-	            	 LocalDate dataNascimento = candidato.getData_nasc().toLocalDate();
-	                int idade = calcularIdade(dataNascimento);
+	        for (Candidato candidato : candidatos) {
+	            LocalDate dataNascimento = candidato.getData_nasc().toLocalDate();
+	            int idade = calcularIdade(dataNascimento);
 
-	                if (idade >= idadeInicial && idade <= idadeFinal) {
-	                    double imc = calcularIMC(candidato.getPeso(), candidato.getAltura());
-	                    somaIMC += imc;
-	                    contador++;
-	                }
-	            }
-
-	            if (contador > 0) {
-	                double imcMedio = somaIMC / contador;
-	                String faixaIdade = idadeInicial + " a " + idadeFinal;
-	                imcMedioPorFaixaIdade.put(faixaIdade, imcMedio);
+	            if (idade >= idadeInicial && idade <= idadeFinal) {
+	                double imc = calcularIMC(candidato.getPeso(), candidato.getAltura());
+	                somaIMC += imc;
+	                contador++;
 	            }
 	        }
 
-	        return imcMedioPorFaixaIdade;
+	        if (contador > 0) {
+	            double imcMedio = somaIMC / contador;
+	            String faixaIdade = idadeInicial + "-" + idadeFinal;
+	            
+	            imcMedioPorFaixaIdade.putIfAbsent("faixasIdade", new ArrayList<>());
+	            imcMedioPorFaixaIdade.putIfAbsent("mediasIMC", new ArrayList<>());
+	            
+	            imcMedioPorFaixaIdade.get("faixasIdade").add(faixaIdade);
+	            imcMedioPorFaixaIdade.get("mediasIMC").add(imcMedio);
+	        }
 	    }
+
+	    return imcMedioPorFaixaIdade;
+	}
+
 
 	    private int calcularIdade(LocalDate dataNascimento) {
 	        LocalDate dataAtual = LocalDate.now();

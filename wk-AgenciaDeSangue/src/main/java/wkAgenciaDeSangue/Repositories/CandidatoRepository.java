@@ -1,9 +1,12 @@
 package wkAgenciaDeSangue.Repositories;
 
+
 import java.util.List;
+
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import jakarta.transaction.Transactional;
@@ -32,5 +35,8 @@ public interface CandidatoRepository extends JpaRepository<Candidato, Integer> {
 			+ " GROUP BY sexo;", nativeQuery = true)
 			
 	List<Object[]> countByObeso();
-
+	
+	@Transactional
+	@Query(value = "select * from Candidato where nome like UPPER ( :nome ) ORDER BY nome ", nativeQuery = true)
+	public List<Candidato> search(@Param("nome") String nome);
 }

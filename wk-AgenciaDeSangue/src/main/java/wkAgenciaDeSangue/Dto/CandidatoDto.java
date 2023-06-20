@@ -2,9 +2,16 @@ package wkAgenciaDeSangue.Dto;
 
 import java.io.Serializable;
 import java.sql.Date;
+import java.time.LocalDate;
+import java.time.Period;
+
+import org.hibernate.validator.constraints.br.CPF;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import wkAgenciaDeSangue.Entities.Candidato;
 import wkAgenciaDeSangue.Entities.Utils.IMC;
 
@@ -13,24 +20,55 @@ public class CandidatoDto implements Serializable{
 	private static final long serialVersionUID = 1L;
 	
 	private Integer id;
+	
+	@NotEmpty(message = "{campo.nome.obrigatorio}")
 	private String nome;
+	
+	
+	@NotNull(message = "{campo.cpf.obrigatorio}")
+	@CPF(message = "{campo.cpf.invalido}")
 	private String cpf;
 	
+	@NotNull(message = "{campo.data_nasc.obrigatorio}")
 	@JsonFormat(pattern = "dd/MM/yyyy")
 	private Date data_nasc;
+	
+	@NotNull(message = "{campo.sexo.obrigatorio}")
 	private String sexo;
+	
+	
 	private String mae;
+	
+	
 	private String pai;
+	
+
 	private String email;
+	
+	@NotNull(message = "{campo.cep.obrigatorio}")
 	private String cep;
+	
+	@NotNull(message = "{campo.endereco.obrigatorio}")
 	private String endereco;
+	@NotNull(message = "{campo.numero.obrigatorio}")
 	private Integer numero;
+	@NotNull(message = "{campo.cidade.obrigatorio}")
 	private String cidade;
+	
+	@Size(min = 2, max = 2, message ="{campo.estado.invalido}" )
+	@NotNull(message = "{campo.estado.obrigatorio}")
 	private String estado;
+	
 	private String telefone_fixo;
 	private String celular;
+	
+	@NotNull(message = "{campo.altura.obrigatorio}")
 	private Double altura;
+	
+	@NotNull(message = "{campo.peso.obrigatorio}")
 	private Double peso;
+	
+	@NotNull(message = "{campo.tipo_sanguineo.obrigatorio}")
 	private String tipo_sanguineo;
 	
 	
@@ -45,7 +83,13 @@ public class CandidatoDto implements Serializable{
 		return IMC.resultado(peso, altura);
 		 
 	}
-	
+	public Integer getIdade() {
+		LocalDate dataNascimento = getData_nasc().toLocalDate();
+		LocalDate dataAtual = LocalDate.now();
+		Period periodo = Period.between(dataNascimento, dataAtual);
+		int idade = periodo.getYears();
+		return  idade;
+	}
 	public CandidatoDto(Candidato obj) {
 		id = obj.getId();
 		nome = obj.getNome();

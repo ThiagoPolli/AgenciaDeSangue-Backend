@@ -1,6 +1,7 @@
 package wkAgenciaDeSangue.Controller;
 
 import java.net.URI;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import jakarta.validation.Valid;
 import wkAgenciaDeSangue.Dto.CandidatoDto;
 import wkAgenciaDeSangue.Dto.MediaSanguineoDto;
 import wkAgenciaDeSangue.Dto.QtdEstadoDto;
@@ -90,21 +92,27 @@ public class CandidatoController {
 	}
 
 	@RequestMapping(value = "/imcporidade", method = RequestMethod.GET)
-	public ResponseEntity<Map<String, Double>> findByImcporIdade() {
-		Map<String, Double> imcMedioPorFaixaIdade = (Map<String, Double>) service.findByImcIdade();
+	public ResponseEntity<Map<String, List<Object>>> findByImcporIdade() {
+		Map<String, List<Object>> imcMedioPorFaixaIdade = service.findByImcIdade();
 
 		return ResponseEntity.ok().body(imcMedioPorFaixaIdade);
 	}
 
 	@RequestMapping(value = "/potencial", method = RequestMethod.GET)
-	public ResponseEntity<Map<String, Integer>> potencialDoador() {
-		Map<String, Integer> potencial = service.potencialDoador();
+	public ResponseEntity<Map<String, List<?>>> potencialDoador() {
+		Map<String, List<?>> potencial = service.potencialDoador();
 
 		return ResponseEntity.ok().body(potencial);
 	}
+	@RequestMapping(value = "/search", method = RequestMethod.GET)
+	public ResponseEntity<List<Candidato>> search(@RequestParam(value = "nome", defaultValue = "") String nome){
+	
+		List<Candidato> candidatos = service.search(nome);
+		return ResponseEntity.ok().body(candidatos);
+	}
 
 	@RequestMapping(method = RequestMethod.POST)
-	public ResponseEntity<Void> insert(@RequestBody CandidatoDto candidatoDTO) {
+	public ResponseEntity<Void> insert(@RequestBody @Valid CandidatoDto candidatoDTO) {
 		Candidato candidato = service.fromDto(candidatoDTO);
 		candidato = service.insert(candidato);
 		URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(candidato.getId())
@@ -122,7 +130,7 @@ public class CandidatoController {
 	}
 
 	@RequestMapping(value = "/{id}", method = RequestMethod.PUT)
-	public ResponseEntity<Void> update(@RequestBody CandidatoDto candidatoDto, @PathVariable Integer id) {
+	public ResponseEntity<Candidato> update(@RequestBody @Valid CandidatoDto candidatoDto, @PathVariable Integer id) {
 		Candidato candidato = service.fromDto(candidatoDto);
 		candidato.setId(id);
 		candidato = service.update(candidato);
